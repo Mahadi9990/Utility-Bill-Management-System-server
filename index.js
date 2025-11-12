@@ -26,23 +26,35 @@ async function run() {
     const dataBase = client.db("Utility_Bill");
     const userCollection = dataBase.collection("users");
     const allBills = dataBase.collection("allBills");
-    const catagorys = dataBase.collection("catagorys");
-    const payBills = dataBase.collection("payBills");
+    const catagoryMenu = dataBase.collection("catagorys");
+    const payBills = dataBase.collection("PayBills");
 
     app.get("/users", async (req, res) => {
       const cursor = userCollection.find();
       const allUser = await cursor.toArray();
       res.send(allUser);
     });
+    app.get("/billsRecodes/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { payUserId: id };
+        const cursor = payBills.find(query);
+        const billsRecodes = await cursor.toArray();
+        res.send(billsRecodes);
+      } catch (error) {
+        console.error("Error fetching user bills:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
     app.get("/sixBills", async (req, res) => {
       const cursor = allBills.find().sort({ date: -1 }).limit(6);
-      const allUser = await cursor.toArray();
-      res.send(allUser);
+      const sixBills = await cursor.toArray();
+      res.send(sixBills);
     });
     app.get("/bills", async (req, res) => {
       const cursor = allBills.find();
-      const allUser = await cursor.toArray();
-      res.send(allUser);
+      const bills = await cursor.toArray();
+      res.send(bills);
     });
     app.get("/bills/:id", async (req, res) => {
       try {
@@ -59,10 +71,10 @@ async function run() {
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
-    app.get("/catagorys", async (req, res) => {
-      const cursor = catagorys.find().sort({ _id: 1 });
-      const allUser = await cursor.toArray();
-      res.send(allUser);
+    app.get("/catagoryMenu", async (req, res) => {
+      const cursor = catagoryMenu.find().sort({ _id: 1 });
+      const catagorys = await cursor.toArray();
+      res.send(catagorys);
     });
     app.get("/catagorys/:menuName", async (req, res) => {
       const menuName = req.params.menuName;
@@ -117,7 +129,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
