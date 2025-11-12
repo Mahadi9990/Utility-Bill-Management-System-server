@@ -97,6 +97,19 @@ async function run() {
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
+    app.post("/billsPost", async (req, res) => {
+      try {
+        const newPost = req.body;
+        const result = await allBills.insertOne(newPost);
+        res.status(201).send({
+          message: "Bills created successfully",
+          userId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("Error inserting Bills:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
