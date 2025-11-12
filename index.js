@@ -1,18 +1,17 @@
-const express =require("express")
+const express = require("express");
 // const cors = require("cors");
 // const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const cors = require('cors')  
+const cors = require("cors");
 
 const app = express();
 const port = 3000;
 
-app.use(cors())
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
-
-
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://shafayat9999:ME3wIItyhhLlWn10@cluster0.37mu4gc.mongodb.net/?appName=Cluster0";
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const uri =
+  "mongodb+srv://shafayat9999:ME3wIItyhhLlWn10@cluster0.37mu4gc.mongodb.net/?appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -20,50 +19,95 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    const dataBase =client.db('Utility_Bill') 
-    const userCollection = dataBase.collection("users")
-    const allBills =dataBase.collection("allBills")
-    const payBills =dataBase.collection("payBills")
-
+    const dataBase = client.db("Utility_Bill");
+    const userCollection = dataBase.collection("users");
+    const allBills = dataBase.collection("allBills");
+    const catagorys = dataBase.collection("catagorys");
+    const payBills = dataBase.collection("payBills");
 
     app.get("/users", async (req, res) => {
-       const cursor = userCollection.find();
+      const cursor = userCollection.find();
       const allUser = await cursor.toArray();
       res.send(allUser);
     });
     app.get("/sixBills", async (req, res) => {
-       const cursor = allBills.find().sort({ date: -1 }).limit(6);
+      const cursor = allBills.find().sort({ date: -1 }).limit(6);
       const allUser = await cursor.toArray();
       res.send(allUser);
     });
     app.get("/bills", async (req, res) => {
-       const cursor = allBills.find();
+      const cursor = allBills.find();
       const allUser = await cursor.toArray();
       res.send(allUser);
     });
-    app.post("/usersPost", async (req, res) => {
-      const newUser = req.body;
-      const {email} = newUser
-      const result = await userCollection.insertOne(newUser);
-      res.send(result);
+    app.get("/bills/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const bill = await allBills.findOne({ _id: new ObjectId(id) });
+
+        if (!bill) {
+          return res.status(404).send({ message: "Bill not found" });
+        }
+
+        res.send(bill);
+      } catch (error) {
+        console.error("Error fetching bill:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
     });
-    // Send a ping to confirm a successful connection
+    app.get("/catagorys", async (req, res) => {
+      const cursor = catagorys.find().sort({ _id: 1 });
+      const allUser = await cursor.toArray();
+      res.send(allUser);
+    });
+    app.get("/catagorys/:menuName", async (req, res) => {
+      const menuName = req.params.menuName;
+      const query = { category: menuName };
+      const cursor = allBills.find(query);
+      const results = await cursor.toArray();
+      res.send(results);
+    });
+
+    app.post("/usersPost", async (req, res) => {
+      try {
+        const newUser = req.body;
+        const { email } = newUser;
+        const existingUser = await userCollection.findOne({ email });
+        if (existingUser) {
+          return res.status(200).send({
+            message: "User already exists",
+            user: existingUser,
+          });
+        }
+
+        const result = await userCollection.insertOne(newUser);
+        res.status(201).send({
+          message: "User created successfully",
+          userId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("Error inserting user:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
+
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
 run().catch(console.dir);
-
 
 // app.use(cors());
 // app.use(express.json());
@@ -91,9 +135,6 @@ run().catch(console.dir);
 //     app.get("/", (req, res) => {
 //       res.send("Hello World!");
 //     });
-
-
-
 
 //     // client not make
 
