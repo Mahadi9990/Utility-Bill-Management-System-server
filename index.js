@@ -21,7 +21,6 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const dataBase = client.db("Utility_Bill");
     const userCollection = dataBase.collection("users");
@@ -33,6 +32,21 @@ async function run() {
       const cursor = userCollection.find();
       const allUser = await cursor.toArray();
       res.send(allUser);
+    });
+    app.get("/userBillsRecords", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const query ={}
+        if(email){
+          query.payUserEmail = email
+        }
+        const cursor = payBills.find(query);
+        const userBillsRecodes = await cursor.toArray();
+        res.send(userBillsRecodes);
+      } catch (error) {
+        console.error("Error fetching user bills:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
     });
     app.get("/billsRecodes/:id", async (req, res) => {
       try {
