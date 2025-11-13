@@ -3,9 +3,35 @@ const cors = require("cors");
 
 const app = express();
 const port = 3000;
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./server-2.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
 
 app.use(cors());
 app.use(express.json());
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Invalid token format" });
+  }
+  try {
+    // If using Firebase Admin SDK to verify JWT:
+    const userInfo = await admin.auth().verifyIdToken(token);
+    console.log("valiad Token", userInfo);
+    req.token_email = userInfo.email;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: "Token verification failed" });
+  }
+};
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri =
@@ -33,12 +59,15 @@ async function run() {
       const allUser = await cursor.toArray();
       res.send(allUser);
     });
-    app.get("/userBillsRecords", async (req, res) => {
+    app.get("/userBillsRecords", verifyToken,async (req, res) => {
       try {
         const email = req.query.email;
-        const query ={}
-        if(email){
-          query.payUserEmail = email
+        const query = {};
+        if (email) {
+          if (email !== req.token_email) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+          query.payUserEmail = email;
         }
         const cursor = payBills.find(query);
         const userBillsRecodes = await cursor.toArray();
@@ -98,9 +127,10 @@ async function run() {
       res.send(results);
     });
 
-    app.post("/usersPost", async (req, res) => {
+    app.post("/usersPost", verifyToken, async (req, res) => {
       try {
         const newUser = req.body;
+        console.log(req.headers);
         const { email } = newUser;
         const existingUser = await userCollection.findOne({ email });
         if (existingUser) {
@@ -160,6 +190,3 @@ run().catch(console.dir);
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-
-
