@@ -25,7 +25,6 @@ const verifyToken = async (req, res, next) => {
   try {
     // If using Firebase Admin SDK to verify JWT:
     const userInfo = await admin.auth().verifyIdToken(token);
-    console.log("valiad Token", userInfo);
     req.token_email = userInfo.email;
     next();
   } catch (error) {
@@ -130,7 +129,6 @@ async function run() {
     app.post("/usersPost", verifyToken, async (req, res) => {
       try {
         const newUser = req.body;
-        console.log(req.headers);
         const { email } = newUser;
         const existingUser = await userCollection.findOne({ email });
         if (existingUser) {
