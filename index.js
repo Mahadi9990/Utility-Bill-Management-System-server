@@ -68,7 +68,7 @@ async function run() {
           }
           query.payUserEmail = email;
         }
-        const cursor = payBills.find(query);
+        const cursor = payBills.find(query).sort({ _id: -1 })
         const userBillsRecodes = await cursor.toArray();
         res.send(userBillsRecodes);
       } catch (error) {
@@ -80,7 +80,7 @@ async function run() {
       try {
         const id = req.params.id;
         const query = { payUserId: id };
-        const cursor = payBills.find(query);
+        const cursor = payBills.find(query).sort({_id: -1 })
         const billsRecodes = await cursor.toArray();
         res.send(billsRecodes);
       } catch (error) {
@@ -94,7 +94,7 @@ async function run() {
       res.send(sixBills);
     });
     app.get("/bills", async (req, res) => {
-      const cursor = allBills.find();
+      const cursor = allBills.find().sort({ date: -1 });
       const bills = await cursor.toArray();
       res.send(bills);
     });
