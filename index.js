@@ -88,6 +88,12 @@ async function run() {
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
+    app.delete("/billsRecodes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await payBills.deleteOne(query);
+      res.send(result);
+    });
     app.get("/sixBills", async (req, res) => {
       const cursor = allBills.find().sort({ date: -1 }).limit(6);
       const sixBills = await cursor.toArray();
