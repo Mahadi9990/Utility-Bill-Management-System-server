@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-
+require("dotenv").config()
 const app = express();
 const port = 3000;
 const admin = require("firebase-admin");
@@ -33,8 +33,8 @@ const verifyToken = async (req, res, next) => {
 };
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const uri =
-  "mongodb+srv://shafayat9999:ME3wIItyhhLlWn10@cluster0.37mu4gc.mongodb.net/?appName=Cluster0";
+const uri = process.env.MONGODB_URL
+  
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -46,7 +46,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const dataBase = client.db("Utility_Bill");
     const userCollection = dataBase.collection("users");
     const allBills = dataBase.collection("allBills");
@@ -199,7 +199,7 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
