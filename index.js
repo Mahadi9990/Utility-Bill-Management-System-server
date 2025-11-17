@@ -58,7 +58,7 @@ async function run() {
       const allUser = await cursor.toArray();
       res.send(allUser);
     });
-    app.get("/userBillsRecords", verifyToken,async (req, res) => {
+    app.get("/userBillsRecords", verifyToken, async (req, res) => {
       try {
         const email = req.query.email;
         const query = {};
@@ -68,7 +68,7 @@ async function run() {
           }
           query.payUserEmail = email;
         }
-        const cursor = payBills.find(query).sort({ _id: -1 })
+        const cursor = payBills.find(query).sort({ _id: -1 });
         const userBillsRecodes = await cursor.toArray();
         res.send(userBillsRecodes);
       } catch (error) {
@@ -80,7 +80,7 @@ async function run() {
       try {
         const id = req.params.id;
         const query = { payUserId: id };
-        const cursor = payBills.find(query).sort({_id: -1 })
+        const cursor = payBills.find(query).sort({ _id: -1 });
         const billsRecodes = await cursor.toArray();
         res.send(billsRecodes);
       } catch (error) {
@@ -179,6 +179,24 @@ async function run() {
         console.error("Error inserting Bills:", error);
         res.status(500).send({ message: "Internal Server Error" });
       }
+    });
+   
+    app.patch("/UpdataReports/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const update = req.body; 
+
+      const updatReports = {
+        $set: {
+          title: update.title,
+          amounts: update.amounts,
+        },
+      };
+
+      const result = await payBills.updateOne(query, updatReports);
+
+      res.send(result);
     });
 
     await client.db("admin").command({ ping: 1 });
